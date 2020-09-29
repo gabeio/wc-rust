@@ -2,7 +2,9 @@
 
 use std::env;
 use std::io;
+use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::ffi::OsString;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -39,8 +41,8 @@ struct Cli {
     words: bool,
 
     /// Files to process
-    #[structopt(name = "FILE", parse(from_os_str))]
-    files: Vec<PathBuf>,
+    #[structopt(name = "FILE")]
+    files: Vec<String>,
 }
 
 fn main() {
@@ -51,14 +53,38 @@ fn main() {
     println!("{}, {}, {}", lang, lcall, lcctype);
     let cli = Cli::from_args();
     println!("{:#?}", cli);
-    if cli.longest {
+    if cli.longest && cli.files.len() > 0 {
+        longest_input_line_file(cli)
+    } else if cli.longest {
         longest_input_line(cli)
     }
 }
 
+fn longest_input_line_file(cli: Cli) {
+    let mut longest = 0;
+    let mut longest_filename: String = String::new();
+
+    for filename in cli.files {
+        // Open the file in read-only mode (ignoring errors).
+        let file = File::open(&filename).unwrap();
+        let reader = BufReader::new(file);
+
+        // Read the file line by line using the lines() iterator from std::io::BufRead.
+        for (index, line) in reader.lines().enumerate() {
+            let line = line.unwrap(); // Ignore errors.
+            if line.len() > longest {
+                longest = line.len();
+                longest_filename = filename.clone();
+            }
+        }
+    }
+
+    println!("{} {}", longest, longest_filename);
+}
+
 fn longest_input_line(cli: Cli) {
     let mut longest = 0;
-    while true {
+    loop {
         let mut input = String::new();
         match io::stdin().read_line(&mut input) {
             Ok(n) => {
@@ -69,8 +95,8 @@ fn longest_input_line(cli: Cli) {
                 // println!("{}", input);
                 // return input;
             }
-            Err(error) => println!("{}", longest),
+            Err(error) => println!("{}", error),
         }
     }
-    // println!("{}", longest);
+    println!("{}", longest);
 }

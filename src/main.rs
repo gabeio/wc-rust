@@ -238,7 +238,22 @@ fn char_count_file(cli: Cli) {
     println!("{} {}", total, "total");
 }
 
-fn char_count(_cli: Cli) {}
+fn char_count(_cli: Cli) {
+    let mut chars = 0;
+    loop {
+        let mut input = String::new();
+        match io::stdin().read_line(&mut input) {
+            Ok(n) => {
+                if n == 0 {
+                    break;
+                }
+                chars += input.chars().count();
+            },
+            Err(error) => println!("{}", error),
+        }
+    }
+    println!("{}", chars);
+}
 
 fn byte_count_file(cli: Cli) {
     let mut bytes: HashMap<String, i64> = HashMap::new();
@@ -270,4 +285,19 @@ fn byte_count_file(cli: Cli) {
     println!("{} {}", total, "total");
 }
 
-fn byte_count(_cli: Cli) {}
+fn byte_count(_cli: Cli) {
+    let mut bytes = 0;
+    loop {
+        let mut input = String::new();
+        match io::stdin().read_line(&mut input) {
+            Ok(n) => {
+                if n == 0 {
+                    break;
+                }
+                bytes += input.len();
+            },
+            Err(error) => println!("{}", error),
+        }
+    }
+    println!("{}", bytes);
+}

@@ -104,12 +104,12 @@ fn longest_input_line(_cli: Cli) {
         let mut input = String::new();
         match io::stdin().read_line(&mut input) {
             Ok(n) => {
+                if n == 0 {
+                    break;
+                }
                 if n > longest {
                     longest = n;
                 }
-                // println!("{} bytes read", n);
-                // println!("{}", input);
-                // return input;
             }
             Err(error) => println!("{}", error),
         }
@@ -149,7 +149,12 @@ fn line_count(_cli: Cli) {
     loop {
         let mut input = String::new();
         match io::stdin().read_line(&mut input) {
-            Ok(_) => total += 1,
+            Ok(n) => {
+                if n == 0 {
+                    break;
+                }
+                total += 1
+            },
             Err(error) => println!("{}", error),
         }
     }
@@ -191,7 +196,10 @@ fn word_count(_cli: Cli) {
     loop {
         let mut input = String::new();
         match io::stdin().read_line(&mut input) {
-            Ok(_) => {
+            Ok(n) => {
+                if n == 0 {
+                    break;
+                }
                 words += input.split_whitespace().count();
             },
             Err(error) => println!("{}", error),

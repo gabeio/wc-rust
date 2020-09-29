@@ -65,6 +65,14 @@ fn main() {
         word_count_file(cli)
     } else if cli.words {
         word_count(cli)
+    } else if cli.characters && cli.files.len() > 0 {
+        char_count_file(cli)
+    } else if cli.characters {
+        char_count(cli)
+    } else if cli.bytes && cli.files.len() > 0 {
+        byte_count_file(cli)
+    } else if cli.bytes {
+        byte_count(cli)
     }
 }
 
@@ -191,3 +199,67 @@ fn word_count(_cli: Cli) {
     }
     println!("{}", words);
 }
+
+fn char_count_file(cli: Cli) {
+    let mut chars: HashMap<String, i64> = HashMap::new();
+
+    for filename in cli.files {
+        // Open the file in read-only mode (ignoring errors).
+        let file = File::open(&filename).unwrap();
+        let reader = BufReader::new(file);
+
+        // Read the file line by line using the lines() iterator from std::io::BufRead.
+        for (_, line) in reader.lines().enumerate() {
+            let line = line.unwrap(); // Ignore errors.
+            let count: i64 = i64::try_from(line.chars().count()).ok().unwrap();
+            if let Some(character) = chars.get_mut(&filename) {
+                *character += count;
+            } else {
+                chars.insert(filename.clone(), count);
+            }
+        }
+    }
+
+    let mut total = 0;
+
+    for (k,v) in chars {
+        total += v;
+        println!("{} {}", k, v);
+    }
+
+    println!("{} {}", total, "total");
+}
+
+fn char_count(_cli: Cli) {}
+
+fn byte_count_file(cli: Cli) {
+    let mut bytes: HashMap<String, i64> = HashMap::new();
+
+    for filename in cli.files {
+        // Open the file in read-only mode (ignoring errors).
+        let file = File::open(&filename).unwrap();
+        let reader = BufReader::new(file);
+
+        // Read the file line by line using the lines() iterator from std::io::BufRead.
+        for (_, line) in reader.lines().enumerate() {
+            let line = line.unwrap(); // Ignore errors.
+            let count: i64 = i64::try_from(line.len()).ok().unwrap();
+            if let Some(byte) = bytes.get_mut(&filename) {
+                *byte += count;
+            } else {
+                bytes.insert(filename.clone(), count);
+            }
+        }
+    }
+
+    let mut total = 0;
+
+    for (k,v) in bytes {
+        total += v;
+        println!("{} {}", k, v);
+    }
+
+    println!("{} {}", total, "total");
+}
+
+fn byte_count(_cli: Cli) {}

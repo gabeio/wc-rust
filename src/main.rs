@@ -4,9 +4,8 @@ use std::env;
 use std::io;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::ffi::OsString;
-use std::path::PathBuf;
 use structopt::StructOpt;
+use std::collections::HashMap;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt, Debug)]
@@ -52,11 +51,15 @@ fn main() {
     // println!("Hello, world!");
     println!("{}, {}, {}", lang, lcall, lcctype);
     let cli = Cli::from_args();
-    println!("{:#?}", cli);
+    // println!("{:#?}", cli);
     if cli.longest && cli.files.len() > 0 {
         longest_input_line_file(cli)
     } else if cli.longest {
         longest_input_line(cli)
+    } else if cli.lines && cli.files.len() > 0 {
+        line_count_file(cli)
+    } else if cli.lines {
+        line_count(cli)
     }
 }
 
@@ -70,7 +73,7 @@ fn longest_input_line_file(cli: Cli) {
         let reader = BufReader::new(file);
 
         // Read the file line by line using the lines() iterator from std::io::BufRead.
-        for (index, line) in reader.lines().enumerate() {
+        for (_, line) in reader.lines().enumerate() {
             let line = line.unwrap(); // Ignore errors.
             if line.len() > longest {
                 longest = line.len();
@@ -82,7 +85,7 @@ fn longest_input_line_file(cli: Cli) {
     println!("{} {}", longest, longest_filename);
 }
 
-fn longest_input_line(cli: Cli) {
+fn longest_input_line(_cli: Cli) {
     let mut longest = 0;
     loop {
         let mut input = String::new();
@@ -100,3 +103,34 @@ fn longest_input_line(cli: Cli) {
     }
     println!("{}", longest);
 }
+
+fn line_count_file(cli: Cli) {
+    // let mut counts: HashMap<String, i64> = HashSet:<String, i64>::new();
+    let mut counts: HashMap<String, i64> = HashMap::new();
+
+    for filename in cli.files {
+        // Open the file in read-only mode (ignoring errors).
+        let file = File::open(&filename).unwrap();
+        let reader = BufReader::new(file);
+
+        // Read the file line by line using the lines() iterator from std::io::BufRead.
+        for (_, _) in reader.lines().enumerate() {
+            if let Some(x) = counts.get_mut(&filename) {
+                *x += 1;
+            } else {
+                counts.insert(filename.clone(), 1);
+            }
+        }
+    }
+
+    let mut total = 0;
+
+    for (k,v) in counts {
+        total += v;
+        println!("{} {}", k, v);
+    }
+
+    println!("{} {}", total, "total");
+}
+
+fn line_count(_cli: Cli) {}

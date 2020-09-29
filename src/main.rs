@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use structopt::StructOpt;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt, Debug)]
@@ -60,6 +61,10 @@ fn main() {
         line_count_file(cli)
     } else if cli.lines {
         line_count(cli)
+    } else if cli.words && cli.files.len() > 0 {
+        word_count_file(cli)
+    } else if cli.words {
+        word_count(cli)
     }
 }
 
@@ -106,7 +111,7 @@ fn longest_input_line(_cli: Cli) {
 
 fn line_count_file(cli: Cli) {
     // let mut counts: HashMap<String, i64> = HashSet:<String, i64>::new();
-    let mut counts: HashMap<String, i64> = HashMap::new();
+    let mut counts: HashMap<String, usize> = HashMap::new();
 
     for filename in cli.files {
         // Open the file in read-only mode (ignoring errors).
@@ -114,12 +119,10 @@ fn line_count_file(cli: Cli) {
         let reader = BufReader::new(file);
 
         // Read the file line by line using the lines() iterator from std::io::BufRead.
-        for (_, _) in reader.lines().enumerate() {
-            if let Some(x) = counts.get_mut(&filename) {
-                *x += 1;
-            } else {
-                counts.insert(filename.clone(), 1);
-            }
+        if let Some(x) = counts.get_mut(&filename) {
+            *x += reader.lines().count();
+        } else {
+            counts.insert(filename.clone(), reader.lines().count());
         }
     }
 
@@ -133,4 +136,58 @@ fn line_count_file(cli: Cli) {
     println!("{} {}", total, "total");
 }
 
-fn line_count(_cli: Cli) {}
+fn line_count(_cli: Cli) {
+    let mut total = 0;
+    loop {
+        let mut input = String::new();
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => total += 1,
+            Err(error) => println!("{}", error),
+        }
+    }
+    println!("{}", total);
+}
+
+fn word_count_file(cli: Cli) {
+    let mut words: HashMap<String, i64> = HashMap::new();
+
+    for filename in cli.files {
+        // Open the file in read-only mode (ignoring errors).
+        let file = File::open(&filename).unwrap();
+        let reader = BufReader::new(file);
+
+        // Read the file line by line using the lines() iterator from std::io::BufRead.
+        for (_, line) in reader.lines().enumerate() {
+            let line = line.unwrap(); // Ignore errors.
+            let count: i64 = i64::try_from(line.split_whitespace().count()).ok().unwrap();
+            if let Some(word) = words.get_mut(&filename) {
+                *word += count;
+            } else {
+                words.insert(filename.clone(), count);
+            }
+        }
+    }
+
+    let mut total = 0;
+
+    for (k,v) in words {
+        total += v;
+        println!("{} {}", k, v);
+    }
+
+    println!("{} {}", total, "total");
+}
+
+fn word_count(_cli: Cli) {
+    let mut words = 0;
+    loop {
+        let mut input = String::new();
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => {
+                words += input.split_whitespace().count();
+            },
+            Err(error) => println!("{}", error),
+        }
+    }
+    println!("{}", words);
+}

@@ -209,7 +209,7 @@ fn word_count(_cli: Cli) {
 }
 
 fn char_count_file(cli: Cli) {
-    let mut chars: HashMap<String, i64> = HashMap::new();
+    let mut chars: HashMap<String, usize> = HashMap::new();
 
     for filename in cli.files {
         // Open the file in read-only mode (ignoring errors).
@@ -219,7 +219,7 @@ fn char_count_file(cli: Cli) {
         // Read the file line by line using the lines() iterator from std::io::BufRead.
         for (_, line) in reader.lines().enumerate() {
             let line = line.unwrap(); // Ignore errors.
-            let count: i64 = i64::try_from(line.chars().count()).ok().unwrap();
+            let count = line.chars().count() + 1;
             if let Some(character) = chars.get_mut(&filename) {
                 *character += count;
             } else {
@@ -256,7 +256,7 @@ fn char_count(_cli: Cli) {
 }
 
 fn byte_count_file(cli: Cli) {
-    let mut bytes: HashMap<String, i64> = HashMap::new();
+    let mut bytes: HashMap<String, usize> = HashMap::new();
 
     for filename in cli.files {
         // Open the file in read-only mode (ignoring errors).
@@ -266,7 +266,7 @@ fn byte_count_file(cli: Cli) {
         // Read the file line by line using the lines() iterator from std::io::BufRead.
         for (_, line) in reader.lines().enumerate() {
             let line = line.unwrap(); // Ignore errors.
-            let count: i64 = i64::try_from(line.len()).ok().unwrap();
+            let count = line.len() + 1;
             if let Some(byte) = bytes.get_mut(&filename) {
                 *byte += count;
             } else {
